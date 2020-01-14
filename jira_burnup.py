@@ -6,7 +6,18 @@ import plotly.graph_objects as go
 import plotly.express as px
 import datetime as dt
 import os.path
+import yaml
 
+def read_config():
+
+	with open("jira_config.yaml", 'r') as stream:
+		try:
+			config = yaml.safe_load(stream)
+
+		except yaml.YAMLError as exc:
+			print(exc)
+
+	return config
 
 def create_jira_connection(url, username, password):
 
@@ -15,17 +26,15 @@ def create_jira_connection(url, username, password):
 
 	return jira
 
-def get_issues_from_epic_query(jira, epics):
+def get_issues_from_epics(jira, epics):
 
 	# Generate list of issues objects
 	issues = []
 
-	if len(epics) > 1:
-
-		for epic in epics:
-			search_query = '"Epic Link"='+epic
-			
-			issues+=jira.search_issues(search_query)
+	for epic in epics:
+		search_query = '"Epic Link"='+epic
+		
+		issues.extend(jira.search_issues(search_query))
 
 	
 	# Generate data from issues
@@ -71,9 +80,9 @@ def aggregate_completed_points(issues_df):
 	return completed_points_per_sprint
 
 
-def get_sprint_list(jira):
+def get_sprint_list(jira, jira_board_id):
 
-	sprints = jira.sprints(233)
+	sprints = jira.sprints(jira_board_id)
 
 	sprint_data = []
 
@@ -179,26 +188,26 @@ def plot_burnup(sprint_data, display=True):
 
 	fig.add_trace(go.Scatter(x=sprint_data['sprint_name'],y=sprint_data['projected_points'],
 							mode='lines+text+markers',
-							name='Projected scope',
+							name='Projected total estimate',
 							text=sprint_data['projected_points'].to_list(),
 							textposition='top center'
 							))
 	fig.add_trace(go.Scatter(x=sprint_data['sprint_name'],y=sprint_data['estimated_points'],
 							mode='lines+text+markers',
-							name='Estimated scope',
+							name='Actual estimated points',
 							text=sprint_data['estimated_points'].to_list(),
 							textposition='top center'
 							))
 	fig.add_trace(go.Scatter(x=sprint_data['sprint_name'],y=sprint_data['cumulative_points'],
 							mode='lines+text+markers',
-							name='Completed points',
+							name='Complete points',
 							text=sprint_data['cumulative_points'].to_list(),
 							textposition='top center',
 							line=dict(color='#58FF33')
 							))
 	fig.add_trace(go.Scatter(x=sprint_data['sprint_name'], y = new_y,
 							line=dict(dash='dash',color='#D6D6D6'),
-							name='Velocity projection'
+							name='Projected velocity'
 							))
 	fig.update_layout(template="plotly_white")
 
