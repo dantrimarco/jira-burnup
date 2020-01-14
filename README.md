@@ -5,7 +5,7 @@ Flexible JIRA burnup charts with Python
 This project was built and tested on Python 3.8.0. Compatibility with older versions of Python is not guaranteed.
 
 To install the package dependencies, run 
-```python3 -m pip install -r requirements.txt'``
+```python3 -m pip install -r requirements.txt```
 
 ## Usage
 
@@ -62,7 +62,7 @@ issues_df.head()
 
 
 <div>
-<style scoped>
+<style type="text/css">
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
     }
@@ -146,7 +146,7 @@ completed_points_per_sprint
 
 
 <div>
-<style scoped>
+<style type="text/css">
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
     }
@@ -212,7 +212,7 @@ sprint_df
 
 
 <div>
-<style scoped>
+<style type="text/css">
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
     }
@@ -285,7 +285,7 @@ sprint_data
 ```
 
 <div>
-<style scoped>
+<style type="text/css">
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
     }
