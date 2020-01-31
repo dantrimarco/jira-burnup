@@ -62,7 +62,7 @@ issues_df = jb.get_issues_from_epics(jira, epics)
 issues_df.head()
 ```
 
-![issues_df](https://raw.githubusercontent.com/dantrimarco/jira-burnup/master/images/issues_df.png)
+![issues_df](https://github.com/dantrimarco/jira-burnup/master/images/issues_df.png)
 
 Aggregate completed points for each sprint and create a cumulative total
 
@@ -73,7 +73,7 @@ completed_points_per_sprint = jb.aggregate_completed_points(issues_df)
 completed_points_per_sprint
 ```
 
-![completed_points_per_sprint](https://raw.githubusercontent.com/dantrimarco/jira-burnup/master/images/completed_points_per_sprint.png)
+![completed_points_per_sprint](https://github.com/dantrimarco/jira-burnup/master/images/completed_points_per_sprint.png)
 
 
 
@@ -86,7 +86,7 @@ sprint_df = jb.get_sprint_list(jira, config['jira_board_id'])
 sprint_df
 ```
 
-![sprint_df](https://raw.githubusercontent.com/dantrimarco/jira-burnup/master/images/sprint_df.png)
+![sprint_df](https://github.com/dantrimarco/jira-burnup/master/images/sprint_df.png)
 
 
 
@@ -99,7 +99,7 @@ sprint_data = jb.create_total_scope_data(issues_df, completed_points_per_sprint,
 sprint_data
 ```
 
-![sprint_data](https://raw.githubusercontent.com/dantrimarco/jira-burnup/master/images/sprint_data.png)
+![sprint_data](https://github.comdantrimarco/jira-burnup/master/images/sprint_data.png)
 
 
 With the most recently closed sprint data updated, we need to create the forecast data. This forecast is an ordinary least squares regression. It will extend to the sprints that are defined in JIRA.
@@ -111,7 +111,7 @@ sprint_data = jb.create_forecast(sprint_data)
 sprint_data
 ```
 
-![sprint_data_with_forecast](https://raw.githubusercontent.com/dantrimarco/jira-burnup/master/images/sprint_data_with_forecast.png)
+![sprint_data_with_forecast](https://github.com/dantrimarco/jira-burnup/master/images/sprint_data_with_forecast.png)
 
 
 
@@ -122,7 +122,7 @@ Now that we have the data, all that is left is to create the plot
 jb.plot_burnup(sprint_data, renderer='notebook')
 ```
 
-![forecast_plot](https://raw.githubusercontent.com/dantrimarco/jira-burnup/master/images/forecast_plot.png)
+![forecast_plot](https://github.com/dantrimarco/jira-burnup/master/images/forecast_plot.png)
 
 Definitions for each calculated value that appears on the graph:
 * **"Projected total estimate"** (`projected_points`): Count of total stories * average points per story. Used to roughly estimate the total scope of the project while accounting for issues that have not yet been workshopped
