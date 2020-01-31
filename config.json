@@ -1,0 +1,299 @@
+{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "catalog-service-mpls-179-4",
+    "namespace": "marketplace-services",
+    "selfLink": "/api/v1/namespaces/marketplace-services/pods/catalog-service-mpls-179-4",
+    "uid": "6f3319d6-4203-11ea-9ddb-7ae507527b08",
+    "resourceVersion": "400002270",
+    "creationTimestamp": "2020-01-28T19:21:50Z",
+    "labels": {
+      "app.kubernetes.io/instance": "catalog-service-mpls-179-4",
+      "app.kubernetes.io/managed-by": "skipper",
+      "app.kubernetes.io/name": "catalog-service-mpls-179-4",
+      "app.kubernetes.io/version": "mpls-179-4",
+      "ci.vividseats.com/build-id": "1",
+      "git.vividseats.com/branch": "MPLS-179-4",
+      "git.vividseats.com/commit": "14aa00e271e9665b4fca82fd0610903e25d7d96d",
+      "helm.sh/chart": "webapp-0.1.0"
+    },
+    "annotations": {
+      "proxy_host": "catalog-service-mpls-179-4.vividseats.test,catalog-service-mpls-179-4.corp.vividseats-dev.com,catalog-service-mpls-179-4.corp.vividseats-stage.com"
+    }
+  },
+  "spec": {
+    "volumes": [
+      {
+        "name": "liveness-volume",
+        "configMap": {
+          "name": "liveness-probe",
+          "defaultMode": 420
+        }
+      },
+      {
+        "name": "fluent-bit-config-map-v1",
+        "configMap": {
+          "name": "fluent-bit-config-map-v1",
+          "defaultMode": 420
+        }
+      },
+      {
+        "name": "logs",
+        "emptyDir": {}
+      },
+      {
+        "name": "default-token-tw8qx",
+        "secret": {
+          "secretName": "default-token-tw8qx",
+          "defaultMode": 420
+        }
+      }
+    ],
+    "containers": [
+      {
+        "name": "catalog-service",
+        "image": "vividseats/catalog-service:mpls-179-4",
+        "ports": [
+          {
+            "name": "http",
+            "containerPort": 80,
+            "protocol": "TCP"
+          }
+        ],
+        "env": [
+          {
+            "name": "LOG_DIR",
+            "value": "/var/log/application"
+          },
+          {
+            "name": "ENVIRONMENT",
+            "value": "stage"
+          },
+          {
+            "name": "SPRING_PROFILES_ACTIVE",
+            "value": "stage"
+          },
+          {
+            "name": "VAULT_ADDR",
+            "value": "http://vault.vividseats.test:8200"
+          },
+          {
+            "name": "VAULT_TOKEN",
+            "value": "90c97305-f9c4-c7cb-c52b-594c3a7d9ef0"
+          },
+          {
+            "name": "PARENT_HOST_ID",
+            "valueFrom": {
+              "fieldRef": {
+                "apiVersion": "v1",
+                "fieldPath": "spec.nodeName"
+              }
+            }
+          }
+        ],
+        "resources": {
+          "limits": {
+            "memory": "2560Mi"
+          },
+          "requests": {
+            "cpu": "500m",
+            "memory": "2560Mi"
+          }
+        },
+        "volumeMounts": [
+          {
+            "name": "liveness-volume",
+            "mountPath": "/mnt/liveness-probe/"
+          },
+          {
+            "name": "logs",
+            "mountPath": "/var/log/application/"
+          },
+          {
+            "name": "default-token-tw8qx",
+            "readOnly": true,
+            "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+          }
+        ],
+        "livenessProbe": {
+          "exec": {
+            "command": [
+              "sh",
+              "/mnt/liveness-probe/liveness.sh"
+            ]
+          },
+          "initialDelaySeconds": 60,
+          "timeoutSeconds": 1,
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "failureThreshold": 3
+        },
+        "readinessProbe": {
+          "httpGet": {
+            "path": "/actuator/health",
+            "port": "http",
+            "scheme": "HTTP"
+          },
+          "initialDelaySeconds": 3,
+          "timeoutSeconds": 1,
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "failureThreshold": 3
+        },
+        "terminationMessagePath": "/dev/termination-log",
+        "terminationMessagePolicy": "File",
+        "imagePullPolicy": "Always"
+      },
+      {
+        "name": "fluent-bit",
+        "image": "fluent/fluent-bit:1.3.2-debug",
+        "ports": [
+          {
+            "name": "http",
+            "containerPort": 2020,
+            "protocol": "TCP"
+          }
+        ],
+        "env": [
+          {
+            "name": "APP_NAME",
+            "value": "catalog-service"
+          },
+          {
+            "name": "BRANCH_LOWER",
+            "value": "mpls-179-4"
+          },
+          {
+            "name": "LOG_DIR",
+            "value": "/var/log/application"
+          }
+        ],
+        "resources": {
+          "limits": {
+            "memory": "40Mi"
+          },
+          "requests": {
+            "cpu": "100m",
+            "memory": "20Mi"
+          }
+        },
+        "volumeMounts": [
+          {
+            "name": "fluent-bit-config-map-v1",
+            "mountPath": "/fluent-bit/etc/fluent-bit.conf",
+            "subPath": "fluent-bit.conf"
+          },
+          {
+            "name": "logs",
+            "mountPath": "/var/log/application/"
+          },
+          {
+            "name": "default-token-tw8qx",
+            "readOnly": true,
+            "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+          }
+        ],
+        "livenessProbe": {
+          "httpGet": {
+            "path": "/",
+            "port": "http",
+            "scheme": "HTTP"
+          },
+          "initialDelaySeconds": 60,
+          "timeoutSeconds": 1,
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "failureThreshold": 3
+        },
+        "readinessProbe": {
+          "httpGet": {
+            "path": "/",
+            "port": "http",
+            "scheme": "HTTP"
+          },
+          "initialDelaySeconds": 3,
+          "timeoutSeconds": 1,
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "failureThreshold": 3
+        },
+        "terminationMessagePath": "/dev/termination-log",
+        "terminationMessagePolicy": "File",
+        "imagePullPolicy": "Always"
+      }
+    ],
+    "restartPolicy": "Never",
+    "terminationGracePeriodSeconds": 10,
+    "dnsPolicy": "ClusterFirst",
+    "serviceAccountName": "default",
+    "serviceAccount": "default",
+    "nodeName": "kubernetes-worker07",
+    "securityContext": {},
+    "imagePullSecrets": [
+      {
+        "name": "dockerhub"
+      }
+    ],
+    "schedulerName": "default-scheduler"
+  },
+  "status": {
+    "phase": "Running",
+    "conditions": [
+      {
+        "type": "Initialized",
+        "status": "True",
+        "lastProbeTime": null,
+        "lastTransitionTime": "2020-01-28T19:21:50Z"
+      },
+      {
+        "type": "Ready",
+        "status": "False",
+        "lastProbeTime": null,
+        "lastTransitionTime": "2020-01-28T19:21:50Z",
+        "reason": "ContainersNotReady",
+        "message": "containers with unready status: [catalog-service]"
+      },
+      {
+        "type": "PodScheduled",
+        "status": "True",
+        "lastProbeTime": null,
+        "lastTransitionTime": "2020-01-28T19:21:50Z"
+      }
+    ],
+    "hostIP": "10.2.106.107",
+    "podIP": "172.16.74.15",
+    "startTime": "2020-01-28T19:21:50Z",
+    "containerStatuses": [
+      {
+        "name": "catalog-service",
+        "state": {
+          "running": {
+            "startedAt": "2020-01-28T19:22:15Z"
+          }
+        },
+        "lastState": {},
+        "ready": false,
+        "restartCount": 0,
+        "image": "vividseats/catalog-service:mpls-179-4",
+        "imageID": "docker-pullable://vividseats/catalog-service@sha256:ba3aaf2e5e56e60b1874e9e7683b30a1b9ca725d10164d3aca9c4dfa0f42bad3",
+        "containerID": "docker://175dbeec3b200ca0b33474c7485595d63c4067595ae1602428b4c8008bf3eb13"
+      },
+      {
+        "name": "fluent-bit",
+        "state": {
+          "running": {
+            "startedAt": "2020-01-28T19:22:19Z"
+          }
+        },
+        "lastState": {},
+        "ready": true,
+        "restartCount": 0,
+        "image": "fluent/fluent-bit:1.3.2-debug",
+        "imageID": "docker-pullable://fluent/fluent-bit@sha256:fe12052ed2356b887b61dfe94044d9e9967692f4a47eb3ab37aaaa79fe871af3",
+        "containerID": "docker://41a27f813fe9dfca2557a31148023e2951aee8065f3223a1bfcb13261de04dcf"
+      }
+    ],
+    "qosClass": "Burstable"
+  }
+}

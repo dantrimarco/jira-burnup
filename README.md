@@ -1,10 +1,13 @@
 # jira-burnup
+
 Flexible JIRA burnup charts with Python
 
 ## Installation
+
 This project was built and tested on Python 3.8.0. Compatibility with older versions of Python is not guaranteed.
 
-To install the package dependencies, run 
+To install the package dependencies, run
+
 ```python3 -m pip install -r requirements.txt```
 
 ## Usage
@@ -30,6 +33,7 @@ Due to the disjoined nature of JIRA data, this script is not perfect. It is **st
 * If an issue was completed outside of a sprint, it will be counted in the last sprint in which it was worked on
 * Modified estimates of issues of closed sprints are not updated retroactively
 * Projected story points and estimated story points cannot be calculated retroactively. Upon the first run of this script, historical data will be identical to the latest sprint
+* The forecast considers `cumulative_points` from the previous 3 sprints. Adding future sprints in JIRA controls how far into the future the forecast is projected
 
 ### Example
 
@@ -51,74 +55,14 @@ Get data from JIRA. The only support method runs a JQL query based on a list of 
 
 
 ```python
-epics = ['Team-34', 'Team-72']
+epics = ['MPLS-34', 'MPLS-72']
 
 issues_df = jb.get_issues_from_epics(jira, epics)
 
 issues_df.head()
 ```
 
-
-
-
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>key</th>
-      <th>story_points</th>
-      <th>status</th>
-      <th>status_change_date</th>
-      <th>sprint_name</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Team-137</td>
-      <td>NaN</td>
-      <td>Backlog</td>
-      <td>2020-01-09T12:04:11.226-0600</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Team-136</td>
-      <td>NaN</td>
-      <td>Backlog</td>
-      <td>2020-01-09T11:42:50.394-0600</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Team-134</td>
-      <td>2.0</td>
-      <td>Ready for Development</td>
-      <td>2020-01-08T16:44:40.586-0600</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Team-131</td>
-      <td>3.0</td>
-      <td>Backlog</td>
-      <td>2020-01-07T12:06:44.023-0600</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>Team-126</td>
-      <td>1.0</td>
-      <td>Done</td>
-      <td>2020-01-09T16:13:35.137-0600</td>
-      <td>Team Sprint 4</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
+![issues_df](https://raw.githubusercontent.com/dantrimarco/jira-burnup/images/issues_df.png)
 
 Aggregate completed points for each sprint and create a cumulative total
 
@@ -129,47 +73,7 @@ completed_points_per_sprint = jb.aggregate_completed_points(issues_df)
 completed_points_per_sprint
 ```
 
-
-
-
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sprint_name</th>
-      <th>story_points</th>
-      <th>cumulative_points</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Team Sprint 1</td>
-      <td>18.0</td>
-      <td>18.0</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Team Sprint 2</td>
-      <td>7.0</td>
-      <td>25.0</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Team Sprint 3</td>
-      <td>26.0</td>
-      <td>51.0</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Team Sprint 4</td>
-      <td>10.0</td>
-      <td>61.0</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+![completed_points_per_sprint](https://raw.githubusercontent.com/dantrimarco/jira-burnup/images/completed_points_per_sprint.png)
 
 
 
@@ -182,57 +86,7 @@ sprint_df = jb.get_sprint_list(jira, config['jira_board_id'])
 sprint_df
 ```
 
-
-
-
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sprint_name</th>
-      <th>sprint_state</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Team Sprint 1</td>
-      <td>CLOSED</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Team Sprint 2</td>
-      <td>CLOSED</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Team Sprint 3</td>
-      <td>CLOSED</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Team Sprint 4</td>
-      <td>ACTIVE</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>Team Sprint 5</td>
-      <td>FUTURE</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>Team Sprint 6</td>
-      <td>FUTURE</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>Team Sprint 7</td>
-      <td>FUTURE</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+![sprint_df](https://raw.githubusercontent.com/dantrimarco/jira-burnup/images/sprint_df.png)
 
 
 
@@ -240,91 +94,24 @@ Create the total scope dataset from the above data. The first run of this functi
 
 
 ```python
-sprint_data = jb.create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df)
+sprint_data = jb.create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, export=False)
 
 sprint_data
 ```
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sprint_name</th>
-      <th>sprint_state</th>
-      <th>complete_points</th>
-      <th>cumulative_points</th>
-      <th>projected_points</th>
-      <th>estimated_points</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Team Sprint 1</td>
-      <td>CLOSED</td>
-      <td>18.0</td>
-      <td>18.0</td>
-      <td>130.0</td>
-      <td>35.0</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Team Sprint 2</td>
-      <td>CLOSED</td>
-      <td>7.0</td>
-      <td>25.0</td>
-      <td>130.0</td>
-      <td>75.0</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Team Sprint 3</td>
-      <td>CLOSED</td>
-      <td>26.0</td>
-      <td>51.0</td>
-      <td>151.0</td>
-      <td>113.0</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Team Sprint 4</td>
-      <td>ACTIVE</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>151.0</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>Team Sprint 5</td>
-      <td>FUTURE</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>151.0</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>Team Sprint 6</td>
-      <td>FUTURE</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>151.0</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>Team Sprint 7</td>
-      <td>FUTURE</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>151.0</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+![sprint_data](https://raw.githubusercontent.com/dantrimarco/jira-burnup/images/sprint_data.png)
+
+
+With the most recently closed sprint data updated, we need to create the forecast data. This forecast is an ordinary least squares regression. It will extend to the sprints that are defined in JIRA.
+
+
+```python
+sprint_data = jb.create_forecast(sprint_data)
+
+sprint_data
+```
+
+![sprint_data_with_forecast](https://raw.githubusercontent.com/dantrimarco/jira-burnup/images/sprint_data_with_forecast.png)
 
 
 
@@ -332,5 +119,18 @@ Now that we have the data, all that is left is to create the plot
 
 
 ```python
-jb.plot_burnup(sprint_data)
+jb.plot_burnup(sprint_data, renderer='notebook')
+```
+
+![forecast_plot](https://raw.githubusercontent.com/dantrimarco/jira-burnup/images/forecast_plot.png)
+
+Definitions for each calculated value that appears on the graph:
+* **"Projected total estimate"** (`projected_points`): Count of total stories * average points per story. Used to roughly estimate the total scope of the project while accounting for issues that have not yet been workshopped
+* **"Total workshopped points"** (`estimated_points`): Total story points for issues with estimates. The delta between this line and `projected_points` is the magnitude of unestimated issues
+* **"Complete points"** (`cumulative_points`): Cumulative total of story points completed
+* **"Projected velocity"** An ordinary least squares regression of `complete_points` over the previous 3 sprints
+
+
+```python
+
 ```
