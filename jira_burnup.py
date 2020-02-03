@@ -136,9 +136,17 @@ def get_sprint_list(jira, jira_board_id):
 
 def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, export=True, sprint_data_filename='sprint_data.csv'):
 
+	extension_check = sprint_data_filename[-4:] == '.csv'
+
+    if extension_check == False:
+        raise ValueError('Only .csv format is accepted.')
+        
+    else:
+        pass
+
 	# TO-DO: add a check for adding new sprints from sprint_df
 
-	if os.path.isfile('sprint_data.csv') == False:
+	if os.path.isfile(sprint_data_filename) == False:
 
 		sprint_data = sprint_df.merge(completed_points_per_sprint,how='left',on='sprint_name')
 
@@ -159,7 +167,7 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 			sprint_data.to_csv(sprint_data_filename)
 
 
-	elif os.path.isfile('sprint_data.csv') == True:
+	elif os.path.isfile(sprint_data_filename) == True:
 
 		# Read data and backup
 		sprint_data = pd.read_csv(sprint_data_filename,index_col=0)
@@ -198,7 +206,7 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 			# Create backup with time-based filename
 			timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-			sprint_data_backup_filename = 'sprint_data_backup_'+timestamp+'.csv'
+			sprint_data_backup_filename = 'backup_'+timestamp+sprint_data_filename
 
 			# Write backup sprint data
 			sprint_data_backup.to_csv(sprint_data_backup_filename)
