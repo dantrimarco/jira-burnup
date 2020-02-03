@@ -105,9 +105,9 @@ With the most recently closed sprint data updated, we need to create the forecas
 
 
 ```python
-sprint_data = jb.create_forecast(sprint_data)
+sprint_data_forecast = jb.create_forecast(sprint_data)
 
-sprint_data
+sprint_data_forecast
 ```
 
 ![sprint_data_with_forecast](https://github.com/dantrimarco/jira-burnup/blob/master/images/sprint_data_with_forecast.png)
@@ -118,7 +118,7 @@ Now that we have the data, all that is left is to create the plot
 
 
 ```python
-jb.plot_burnup(sprint_data, renderer='notebook')
+jb.plot_burnup(sprint_data_forecast, renderer='notebook')
 ```
 
 ![forecast_plot](https://github.com/dantrimarco/jira-burnup/blob/master/images/forecast_plot.png)
