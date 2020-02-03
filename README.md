@@ -51,13 +51,12 @@ config = jb.read_config()
 jira = jb.create_jira_connection(config['url'], config['username'], config['password'])
 ```
 
-Get data from JIRA. The only support method runs a JQL query based on a list of epics.
-
+Get data from JIRA from a JQL query.
 
 ```python
-epics = ['MPLS-34', 'MPLS-72']
+query = '"Epic Link"=MPLS-34 OR "Epic Link"=MPLS-72'
 
-issues_df = jb.get_issues_from_epics(jira, epics)
+issues_df = jb.get_issues(jira, query)
 
 issues_df.head()
 ```
