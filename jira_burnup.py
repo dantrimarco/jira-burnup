@@ -109,6 +109,8 @@ def aggregate_completed_points(issues_df):
 
 	completed_points_per_sprint['cumulative_points'] = completed_points_per_sprint['story_points'].cumsum()
 
+	completed_points_per_sprint.columns = ['sprint_name','completed_points','cumulative_points']
+
 	return completed_points_per_sprint
 
 
@@ -138,33 +140,34 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 	extension_check = sprint_data_filename[-4:] == '.csv'
 
-    if extension_check == False:
-        raise ValueError('Only .csv format is accepted.')
-        
-    else:
-        pass
+	if extension_check == False:
+		raise ValueError('Only .csv format is accepted.')
+		
+	else:
+		pass
 
 	# TO-DO: add a check for adding new sprints from sprint_df
 
 	if os.path.isfile(sprint_data_filename) == False:
 
+		print('Creating new dataset')
+
 		sprint_data = sprint_df.merge(completed_points_per_sprint,how='left',on='sprint_name')
+		
 
-		latest_sprint = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_name'].iloc[-1]
-
-		#Assign projected points based on average points for all stories
-
-		sprint_data['projected_points'] = round(len(issues_df)*issues_df['story_points'].mean())
+		# Calculate the projected points based on the average story points for all stories in the JIRA data
+		projected_points = round(len(issues_df)*issues_df['story_points'].mean())
 
 		# Calculate the total story points that have estimates in the JIRA data
+		estimated_points = issues_df['story_points'].sum()
 
-		sprint_data['estimated_points'] = np.nan
+		sprint_data['projected_points'] = projected_points
+		sprint_data['estimated_points'] = estimated_points
 
-		sprint_data.loc[sprint_data['sprint_name']<=latest_sprint,'estimated_points'] = issues_df['story_points'].sum()
 
-		if export==True:
+		latest_sprint = sprint_data[['sprint_state', 'sprint_name']].iloc[-1]
 
-			sprint_data.to_csv(sprint_data_filename)
+		sprint_data.loc[sprint_data['sprint_state']=='ACTIVE', ['completed_points','cumulative_points']] = [np.nan, np.nan]
 
 
 	elif os.path.isfile(sprint_data_filename) == True:
@@ -175,14 +178,16 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 		sprint_data_backup = sprint_data.copy()
 
 		# Update sprint names and state from sprint_df
-	
+
 		sprint_data = sprint_df.merge(sprint_data, on=['sprint_name','sprint_state'],how='left')
+
+
 
 		# Get the latest CLOSED sprint
 		latest_sprint = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_name'].iloc[-1]
 
 		# Get the value for complete/cumulative points in this sprint from the aggregate JIRA data
-		latest_sprint_complete_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint]['story_points'].values[0]
+		latest_sprint_complete_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint]['completed_points'].values[0]
 		latest_sprint_cumulative_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint]['cumulative_points'].values[0]
 
 		# Calculate the projected points based on the average story points for all stories in the JIRA data
@@ -193,23 +198,23 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 		 # Assign updated values for complete, cumulative and estimated points to this current sprint
 
-		sprint_data.loc[sprint_data['sprint_name']==latest_sprint, ['complete_points','cumulative_points','estimated_points']] = [latest_sprint_complete_points, latest_sprint_cumulative_points, latest_estimated_points]
+		sprint_data.loc[sprint_data['sprint_name']==latest_sprint, ['completed_points','cumulative_points','estimated_points']] = [latest_sprint_complete_points, latest_sprint_cumulative_points, latest_estimated_points]
 
 		# Assign updated values for projected points to the current and all future sprints
 		sprint_data.loc[sprint_data['sprint_name']>=latest_sprint,'projected_points'] = latest_projected_points 
 
-		# Write to file
-		if export==True:
+	# Write to file
+	if export==True:
 
-			# Write new sprint data
-			sprint_data.to_csv(sprint_data_filename)
+		# Write new sprint data
+		sprint_data.to_csv(sprint_data_filename)
 
-			# Create backup with time-based filename
-			timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-			sprint_data_backup_filename = 'backup_'+timestamp+sprint_data_filename
+		# Create backup with time-based filename
+		timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		sprint_data_backup_filename = 'backup_'+timestamp+sprint_data_filename
 
-			# Write backup sprint data
-			sprint_data_backup.to_csv(sprint_data_backup_filename)
+		# Write backup sprint data
+		sprint_data_backup.to_csv(sprint_data_backup_filename)
 
 		
 	return sprint_data
