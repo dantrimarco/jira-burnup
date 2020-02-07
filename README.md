@@ -17,13 +17,13 @@ To install the package dependencies, run
 Before using, you must modify `jira_config.yaml` with the necessary data:
 
 ```yaml
-url: 'https://vividseats.atlassian.net/'
+url: 'https://company.atlassian.net/'
 username: '<your email address>'
 password: '<your API token>'
 jira_board_id: '<your_jira_board_id>'
 ```
 
-To create an API token, visit https://id.atlassian.com/manage-profile/security. JIRA board ID can be found in the URL of your team's board. For example, `jira_board_id = 233` for the following url URL: https://vividseats.atlassian.net/secure/RapidBoard.jspa?rapidView=233&projectKey=MPLS
+To create an API token, visit https://id.atlassian.com/manage-profile/security. JIRA board ID can be found in the URL of your team's board. For example, `jira_board_id = 233` for the following url URL: https://company.atlassian.net/secure/RapidBoard.jspa?rapidView=233&projectKey=MPLS
 
 ### Important considerations
 
@@ -80,7 +80,7 @@ Create a list of sprints with the current status of each. This list is used to d
 
 
 ```python
-sprint_df = jb.get_sprint_list(jira, config['jira_board_id'])
+sprint_df = jb.get_sprint_list(jira, config['jira_board_id'], sprint_id_start=1500, sprsint_id_end=1600)
 
 sprint_df
 ```
@@ -93,12 +93,12 @@ Create the total scope dataset from the above data. The first run of this functi
 
 
 ```python
-sprint_data = jb.create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, export=False)
+sprint_data = jb.create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, export=True, sprint_data_filename='sprint_data.csv', )
 
 sprint_data
 ```
 
-![sprint_data](https://github.comdantrimarco/jira-burnup/blob/master/images/sprint_data.png)
+![sprint_data](https://github.com/dantrimarco/jira-burnup/blob/master/images/sprint_data.png)
 
 
 With the most recently closed sprint data updated, we need to create the forecast data. This forecast is an ordinary least squares regression. It will extend to the sprints that are defined in JIRA.
@@ -114,11 +114,11 @@ sprint_data_forecast
 
 
 
-Now that we have the data, all that is left is to create the plot
+Now that we have the data, all that is left is to create the plot.
 
 
 ```python
-jb.plot_burnup(sprint_data_forecast, renderer='notebook')
+jb.plot_burnup(sprint_data_forecast, renderer='notebook', forecast=True)
 ```
 
 ![forecast_plot](https://github.com/dantrimarco/jira-burnup/blob/master/images/forecast_plot.png)

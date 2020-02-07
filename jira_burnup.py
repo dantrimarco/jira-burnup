@@ -263,7 +263,7 @@ def create_forecast(sprint_data):
 
 	return sprint_data.copy()
 
-def plot_burnup(sprint_data, renderer='notebook'):
+def plot_burnup(sprint_data, renderer='notebook', forecast=True):
 
 	# Create plotly plot
 
@@ -289,10 +289,13 @@ def plot_burnup(sprint_data, renderer='notebook'):
 							textposition='top center',
 							line=dict(color='#58FF33')
 							))
-	fig.add_trace(go.Scatter(x=sprint_data['sprint_name'], y =sprint_data['forecast'],
-							line=dict(dash='dash',color='#D6D6D6'),
-							name='Projected velocity'
-							))
+
+	if forecast==True:
+
+		fig.add_trace(go.Scatter(x=sprint_data['sprint_name'], y =sprint_data['forecast'],
+								line=dict(dash='dash',color='#D6D6D6'),
+								name='Projected velocity'
+								))
 
 	fig.update_layout(template="plotly_white")
 	fig.update_xaxes(tickangle=45)
