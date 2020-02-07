@@ -114,7 +114,7 @@ def aggregate_completed_points(issues_df):
 	return completed_points_per_sprint
 
 
-def get_sprint_list(jira, jira_board_id):
+def get_sprint_list(jira, jira_board_id, sprint_id_start=0, sprint_id_end=9999):
 
 
 	sprints = jira.sprints(jira_board_id)
@@ -122,10 +122,13 @@ def get_sprint_list(jira, jira_board_id):
 	sprint_data = []
 
 	for sprint in sprints:
+
 		name = sprint.name
 		state = sprint.state
+		sprint_id = sprint.id
 		
 		sprint_dict = {
+			'sprint_id':sprint_id,
 			'sprint_name':name,
 			'sprint_state':state
 		}
@@ -133,6 +136,9 @@ def get_sprint_list(jira, jira_board_id):
 		sprint_data.append(sprint_dict)
 
 	sprint_df = pd.DataFrame(sprint_data)
+
+	# Filter sprint_id range
+	sprint_df = sprint_df[(sprint_df['sprint_id'] >= sprint_id_start) & (sprint_df['sprint_id'] <= sprint_id_end)]
 
 	return sprint_df
 
@@ -169,6 +175,12 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 		sprint_data.loc[sprint_data['sprint_state']=='ACTIVE', ['completed_points','cumulative_points']] = [np.nan, np.nan]
 
+		# Write to file
+		if export==True:
+
+			# Write new sprint data
+			sprint_data.to_csv(sprint_data_filename)
+
 
 	elif os.path.isfile(sprint_data_filename) == True:
 
@@ -203,18 +215,18 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 		# Assign updated values for projected points to the current and all future sprints
 		sprint_data.loc[sprint_data['sprint_name']>=latest_sprint,'projected_points'] = latest_projected_points 
 
-	# Write to file
-	if export==True:
+		# Write to file
+		if export==True:
 
-		# Write new sprint data
-		sprint_data.to_csv(sprint_data_filename)
+			# Write new sprint data
+			sprint_data.to_csv(sprint_data_filename)
 
-		# Create backup with time-based filename
-		timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		sprint_data_backup_filename = 'backup_'+timestamp+sprint_data_filename
+			# Create backup with time-based filename
+			timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			sprint_data_backup_filename = 'backup_'+timestamp+sprint_data_filename
 
-		# Write backup sprint data
-		sprint_data_backup.to_csv(sprint_data_backup_filename)
+			# Write backup sprint data
+			sprint_data_backup.to_csv(sprint_data_backup_filename)
 
 		
 	return sprint_data
