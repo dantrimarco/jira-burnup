@@ -287,7 +287,8 @@ def plot_burnup(sprint_data, renderer='notebook', forecast=True):
 							name='Complete points',
 							text=sprint_data['cumulative_points'].to_list(),
 							textposition='top center',
-							line=dict(color='#58FF33')
+							line=dict(color='#58FF33'),
+							connectgaps=True
 							))
 
 	if forecast==True:
@@ -299,6 +300,7 @@ def plot_burnup(sprint_data, renderer='notebook', forecast=True):
 
 	fig.update_layout(template="plotly_white")
 	fig.update_xaxes(tickangle=45)
+	fig.update_yaxes(range=[0,sprint_data['projected_points'].max()+5])
 
 
 	fig.show(renderer=renderer)
