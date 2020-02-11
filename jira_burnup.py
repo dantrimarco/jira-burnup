@@ -196,11 +196,12 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 
 		# Get the latest CLOSED sprint
-		latest_sprint = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_name'].iloc[-1]
+		latest_sprint_id = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_id'].iloc[-1]
+		latest_sprint_name = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_name'].iloc[-1]
 
 		# Get the value for complete/cumulative points in this sprint from the aggregate JIRA data
-		latest_sprint_complete_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint]['completed_points'].values[0]
-		latest_sprint_cumulative_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint]['cumulative_points'].values[0]
+		latest_sprint_complete_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint_name]['completed_points'].values[0]
+		latest_sprint_cumulative_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint_name]['cumulative_points'].values[0]
 
 		# Calculate the projected points based on the average story points for all stories in the JIRA data
 		latest_projected_points = round(len(issues_df)*issues_df['story_points'].mean())
@@ -208,12 +209,16 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 		# Calculate the total story points that have estimates in the JIRA data
 		latest_estimated_points = issues_df['story_points'].sum()
 
-		 # Assign updated values for complete, cumulative and estimated points to this current sprint
+		 # Assign updated values for complete and cumulative points to this current sprint
 
-		sprint_data.loc[sprint_data['sprint_name']==latest_sprint, ['completed_points','cumulative_points','estimated_points']] = [latest_sprint_complete_points, latest_sprint_cumulative_points, latest_estimated_points]
+		sprint_data.loc[sprint_data['sprint_id']==latest_sprint_id, ['completed_points','cumulative_points']] = [latest_sprint_complete_points, latest_sprint_cumulative_points]
+
+		 # Assign updated values for estimated points to the current and all future sprints
+
+		sprint_data.loc[sprint_data['sprint_id']>=latest_sprint_id, ['estimated_points']] = [latest_estimated_points]
 
 		# Assign updated values for projected points to the current and all future sprints
-		sprint_data.loc[sprint_data['sprint_name']>=latest_sprint,'projected_points'] = latest_projected_points 
+		sprint_data.loc[sprint_data['sprint_id']>=latest_sprint_id,'projected_points'] = latest_projected_points 
 
 		# Write to file
 		if export==True:
@@ -300,7 +305,7 @@ def plot_burnup(sprint_data, renderer='notebook', forecast=True):
 
 	fig.update_layout(template="plotly_white")
 	fig.update_xaxes(tickangle=45)
-	fig.update_yaxes(range=[0,sprint_data['projected_points'].max()+5])
+	fig.update_yaxes(range=[0,sprint_data['projected_points'].max()*1.05])
 
 
 	fig.show(renderer=renderer)
