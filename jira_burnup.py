@@ -191,9 +191,7 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 		# Update sprint names and state from sprint_df
 
-		sprint_data = sprint_df.merge(sprint_data, on=['sprint_name','sprint_state'],how='left')
-
-
+		sprint_data = sprint_df.merge(sprint_data, on=['sprint_id','sprint_name','sprint_state'],how='left')
 
 		# Get the latest CLOSED sprint
 		latest_sprint_id = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_id'].iloc[-1]
