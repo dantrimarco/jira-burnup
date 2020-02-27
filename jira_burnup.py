@@ -76,11 +76,13 @@ def get_issues(jira, search_query):
 			name_index = parsed_id_list.index(max(parsed_id_list))
 
 			sprint_name = parsed_name_list[name_index]
+			sprint_id = int(max(parsed_id_list))
 		
 
 		else:
 			last_sprint = issue.fields.customfield_10101[0]
 			sprint_name = last_sprint[last_sprint.find('name=')+5:last_sprint.find(',goal=')]
+			sprint_id = int(last_sprint[last_sprint.find('id=')+3:last_sprint.find(',rapidViewId=')])
 			
 
 		
@@ -91,6 +93,7 @@ def get_issues(jira, search_query):
 			'status': status,
 			'created_date': created_date,
 			'status_change_date': status_change_date,
+			'sprint_id': sprint_id,
 			'sprint_name': sprint_name
 			
 		}
@@ -105,11 +108,17 @@ def aggregate_completed_points(issues_df):
 
 	done_issues = issues_df[issues_df['status']=='Done']
 	
-	completed_points_per_sprint = done_issues.groupby('sprint_name')['story_points'].agg(sum).reset_index()
+	completed_points_per_sprint = done_issues.groupby('sprint_id')['story_points'].agg(sum).reset_index()
+
+	
+
+	completed_points_per_sprint = completed_points_per_sprint.sort_values(by=['sprint_id'])
+
+	print(completed_points_per_sprint)
 
 	completed_points_per_sprint['cumulative_points'] = completed_points_per_sprint['story_points'].cumsum()
 
-	completed_points_per_sprint.columns = ['sprint_name','completed_points','cumulative_points']
+	completed_points_per_sprint.columns = ['sprint_id','completed_points','cumulative_points']
 
 	return completed_points_per_sprint
 
@@ -158,7 +167,7 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 		print('Creating new dataset')
 
-		sprint_data = sprint_df.merge(completed_points_per_sprint,how='left',on='sprint_name')
+		sprint_data = sprint_df.merge(completed_points_per_sprint,how='left',on='sprint_id')
 		
 
 		# Calculate the projected points based on the average story points for all stories in the JIRA data
@@ -171,7 +180,7 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 		sprint_data['estimated_points'] = estimated_points
 
 
-		latest_sprint = sprint_data[['sprint_state', 'sprint_name']].iloc[-1]
+		latest_sprint = sprint_data[['sprint_state', 'sprint_id']].iloc[-1]
 
 		sprint_data.loc[sprint_data['sprint_state']=='ACTIVE', ['completed_points','cumulative_points']] = [np.nan, np.nan]
 
@@ -198,8 +207,8 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 		latest_sprint_name = sprint_data[sprint_data['sprint_state']=='CLOSED']['sprint_name'].iloc[-1]
 
 		# Get the value for complete/cumulative points in this sprint from the aggregate JIRA data
-		latest_sprint_complete_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint_name]['completed_points'].values[0]
-		latest_sprint_cumulative_points = completed_points_per_sprint[completed_points_per_sprint['sprint_name']==latest_sprint_name]['cumulative_points'].values[0]
+		latest_sprint_complete_points = completed_points_per_sprint[completed_points_per_sprint['sprint_id']==latest_sprint_id]['completed_points'].values[0]
+		latest_sprint_cumulative_points = completed_points_per_sprint[completed_points_per_sprint['sprint_id']==latest_sprint_id]['cumulative_points'].values[0]
 
 		# Calculate the projected points based on the average story points for all stories in the JIRA data
 		latest_projected_points = round(len(issues_df)*issues_df['story_points'].mean())
