@@ -184,6 +184,8 @@ def create_total_scope_data(issues_df, completed_points_per_sprint, sprint_df, e
 
 		sprint_data.loc[sprint_data['sprint_state']=='ACTIVE', ['completed_points','cumulative_points']] = [np.nan, np.nan]
 
+		sprint_data = sprint_data.sort_values(by=['sprint_id'])
+
 		# Write to file
 		if export==True:
 
