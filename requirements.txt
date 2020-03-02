@@ -2,3 +2,5 @@ jira
 pandas
 plotly
 pyyaml
+statsmodels
+notebook
