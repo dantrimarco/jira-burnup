@@ -5,7 +5,7 @@ import plotly as py
 import plotly.graph_objects as go
 import plotly.express as px
 import datetime as dt
-import os.path
+import os
 import yaml
 import re
 
@@ -48,6 +48,7 @@ def get_issues(jira, search_query):
 		
 		if sprint_data_raw is None:
 			sprint_name = ''
+			sprint_id = ''
 			
 		elif len(sprint_data_raw)>1:
 			parsed_id_list = []
@@ -110,11 +111,7 @@ def aggregate_completed_points(issues_df):
 	
 	completed_points_per_sprint = done_issues.groupby('sprint_id')['story_points'].agg(sum).reset_index()
 
-	
-
 	completed_points_per_sprint = completed_points_per_sprint.sort_values(by=['sprint_id'])
-
-	print(completed_points_per_sprint)
 
 	completed_points_per_sprint['cumulative_points'] = completed_points_per_sprint['story_points'].cumsum()
 
@@ -252,9 +249,6 @@ def create_forecast(sprint_data):
 
 	completed_sprints = sprint_data[sprint_data['sprint_state']=='CLOSED'].iloc[-3:].copy()
 
-	# Erase current 'forecast' in sprint_data
-	sprint_data['forecast'] = np.nan
-
 	# Calculate trendline data. Probably shouldn't use plotly for this, but it's easier than using another package for now
 
 	trendline = px.scatter(x=completed_sprints.index.to_list(),y=completed_sprints['cumulative_points'],trendline='ols').data[1]
@@ -273,9 +267,16 @@ def create_forecast(sprint_data):
 	new_y = fit_y+forecasted_y
 	new_x = fit_x+forecasted_x
 
-	sprint_data['forecast'].iloc[new_x[0]:new_x[-1]+1] = new_y
+	#Add forecast data to dataframe
 
-	return sprint_data.copy()
+	sprint_data_forecast = sprint_data.copy()
+
+	forecast_list = [np.nan for i in range(0,len(sprint_data_forecast))]
+	forecast_list[new_x[0]:new_x[-1]+1] = new_y
+
+	sprint_data_forecast['forecast'] = forecast_list
+
+	return sprint_data_forecast
 
 def plot_burnup(sprint_data, renderer='notebook', forecast=True):
 
@@ -318,6 +319,12 @@ def plot_burnup(sprint_data, renderer='notebook', forecast=True):
 
 
 	fig.show(renderer=renderer)
+
+	#Rename figure
+	if renderer=='iframe':
+
+		new_filename = 'burnup_'+dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'.html'
+		os.rename('iframe_figures/figure_0.html','iframe_figures/'+new_filename)
 
 	return
 
